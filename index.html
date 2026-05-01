@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataDesign DP - Panel de Análisis</title>
+    <!-- Tailwind CSS para que se vea decente sin tener que escribir 1000 líneas de CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para los íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Un par de transiciones suaves para que parezca una app moderna */
+        .tab-content { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Ocultar barra de desplazamiento fea pero permitir scroll */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-indigo-200">
+
+    <!-- HEADER NAVBAR -->
+    <header class="bg-indigo-900 text-white p-6 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-800 rounded-lg">
+                    <i class="fa-solid fa-chart-column text-2xl text-indigo-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight">DataDesign DP</h1>
+                    <p class="text-indigo-300 text-sm font-medium">Panel de Análisis de Tráfico de Diseño - 2026</p>
+                </div>
+            </div>
+            
+            <nav class="flex flex-wrap justify-center bg-indigo-800/50 p-1 rounded-xl gap-1">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn active-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-indigo-900 shadow-sm">
+                    <i class="fa-solid fa-border-all"></i> General
+                </button>
+                <button onclick="switchTab('search')" id="btn-search" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-indigo-200 hover:text-white hover:bg-indigo-700">
+                    <i class="fa-solid fa-magnifying-glass"></i> Buscador
+                </button>
+                <button onclick="switchTab('designers')" id="btn-designers" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-indigo-200 hover:text-white hover:bg-indigo-700">
+                    <i class="fa-solid fa-palette"></i> Diseñadores
+                </button>
+                <button onclick="switchTab('requesters')" id="btn-requesters" class="tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-indigo-200 hover:text-white hover:bg-indigo-700">
+                    <i class="fa-solid fa-users"></i> Solicitantes
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-7xl mx-auto p-6 mt-4">
+        
+        <!-- TAB 1: DASHBOARD GENERAL -->
+        <div id="dashboard" class="tab-content active space-y-6">
+            <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
+                <i class="fa-regular fa-calendar-check text-indigo-500"></i> Estado General de Entregas
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="kpi-container">
+                <!-- Se llena por JS -->
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mt-8">
+                <h3 class="text-lg font-bold text-slate-700 mb-4">La cruda verdad de las métricas</h3>
+                <p class="text-slate-600 leading-relaxed" id="dashboard-insight">
+                    <!-- Se llena por JS -->
+                </p>
+            </div>
+        </div>
+
+        <!-- TAB 2: BUSCADOR -->
+        <div id="search" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <div class="relative max-w-2xl mx-auto">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput"
+                        placeholder="Busca por pieza, diseñador o quién lo pidió (Ej: Flyer, Pipo, Karen)..."
+                        class="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-xl text-slate-700 focus:ring-2 focus:ring-indigo-500 shadow-inner outline-none transition-all"
+                    >
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                        <tr>
+                            <th class="p-4 border-b border-slate-100">Solicitud</th>
+                            <th class="p-4 border-b border-slate-100">Solicitante</th>
+                            <th class="p-4 border-b border-slate-100">Diseñador</th>
+                            <th class="p-4 border-b border-slate-100 text-center">Fechas (Req / Ent)</th>
+                            <th class="p-4 border-b border-slate-100 text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm" id="search-results">
+                        <!-- Se llena por JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: DISEÑADORES -->
+        <div id="designers" class="tab-content space-y-6">
+            <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
+                <i class="fa-solid fa-palette text-indigo-500"></i> Desempeño del Equipo de Diseño
+            </h2>
+            <div class="grid grid-cols-1 gap-4" id="designers-container">
+                <!-- Se llena por JS -->
+            </div>
+        </div>
+
+        <!-- TAB 4: SOLICITANTES -->
+        <div id="requesters" class="tab-content space-y-6">
+            <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
+                <i class="fa-solid fa-bullhorn text-indigo-500"></i> Top Clientes Internos (Los que más piden)
+            </h2>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold tracking-wider">
+                        <tr>
+                            <th class="p-4 border-b border-slate-100">Nombre del Solicitante</th>
+                            <th class="p-4 border-b border-slate-100 text-center">Total Pedidos</th>
+                            <th class="p-4 border-b border-slate-100 text-center">Entregas a Tiempo</th>
+                            <th class="p-4 border-b border-slate-100 text-center">Con Retraso</th>
+                            <th class="p-4 border-b border-slate-100 text-center">Pendientes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm" id="requesters-container">
+                        <!-- Se llena por JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- AQUÍ EMPIEZA LA MAGIA DE JAVASCRIPT -->
+    <script>
+        // --- 1. LOS DATOS (Tu Excel incrustado aquí) ---
+        const rawData = [
+            { solicitud: "Solicitud diseño pieza gráfica Simposio Virtual", solicitante: "Nicolás", diseñador: "Pipo Sejín", fecha_solicitada: "2026-01-06", fecha_entrega: "2026-01-07" },
+            { solicitud: "Informe Catatumbo diagramación", solicitante: "Karen Jefe", diseñador: "Carolina Norato", fecha_solicitada: "2026-01-06", fecha_entrega: "2026-01-02" },
+            { solicitud: "solicitud revisión y aprobación carrusel masacre de El Tigre", solicitante: "Eilyn", diseñador: "Joaneth Morales", fecha_solicitada: "2026-01-06", fecha_entrega: "2026-01-08" },
+            { solicitud: "Ajustes texto Publicación PTEP", solicitante: "Bibiana Salmanca", diseñador: "Diego Rojas", fecha_solicitada: "2026-01-07", fecha_entrega: "2026-01-14" },
+            { solicitud: "RV: SOLICITUD FLYER REGIONAL SOACHA", solicitante: "Fernando Rivas", diseñador: "Daniel Rincón", fecha_solicitada: "2026-01-29", fecha_entrega: "2026-01-28" },
+            { solicitud: "Conversatorios en Salud Mental Enero", solicitante: "Lina Berrocal", diseñador: "Pipo Sejín", fecha_solicitada: "2026-01-30", fecha_entrega: "2026-01-29" },
+            { solicitud: "Mapa de la esperanza avances", solicitante: "Karen Jefe", diseñador: "Catalina Torres", fecha_solicitada: "2026-02-13", fecha_entrega: "2026-02-20" },
+            { solicitud: "Solicitud de diagramación de rutas", solicitante: "Nicolás", diseñador: "Pipo Sejín", fecha_solicitada: "2026-03-06", fecha_entrega: "2026-03-06" },
+            { solicitud: "informe de gestión DIC-Febrero equipo diseño", solicitante: "Karen Jefe", diseñador: "Carolina Norato", fecha_solicitada: "2026-03-02", fecha_entrega: "2026-03-02" },
+            { solicitud: "SOLICITUD: Diseño de pieza Jornada Buen Futuro", solicitante: "Daniela", diseñador: "Andres Barreto", fecha_solicitada: "2026-03-27", fecha_entrega: "2026-03-26" },
+            { solicitud: "RV: Revisión de línea gráfica (Curso VBG - DDMAG)", solicitante: "Valentina", diseñador: "Joaneth Morales", fecha_solicitada: "2026-03-26", fecha_entrega: "2026-03-27" },
+            { solicitud: "Contenido Botón JAC", solicitante: "viviana vargas", diseñador: "Catalina Torres", fecha_solicitada: "2026-04-28", fecha_entrega: null },
+            { solicitud: "SOLITICITUD: Diseño foto-carrusel mujeres amputadas", solicitante: "Daniela", diseñador: "Carolina Norato", fecha_solicitada: null, fecha_entrega: null },
+            { solicitud: "Jornada de vacunación mayo", solicitante: "Lina Berrocal", diseñador: "Daniel Rincón", fecha_solicitada: "2026-05-04", fecha_entrega: null },
+            { solicitud: "Favor diseño carrusel AT 011 2026", solicitante: "Alexander garzon", diseñador: "Pipo Sejín", fecha_solicitada: "2026-04-30", fecha_entrega: "2026-04-29" },
+            { solicitud: "Diseño carrusel protesta-29 de abril", solicitante: "Sonia Huerfano", diseñador: "Diego Rojas", fecha_solicitada: "2026-04-30", fecha_entrega: null },
+            { solicitud: "propuesta estrategia comunicación SIGI-SIGCO", solicitante: "Bibiana Salmanca", diseñador: "Carolina Norato", fecha_solicitada: "2026-04-30", fecha_entrega: null }
+        ];
+
+        // --- 2. EL MOTOR DE PROCESAMIENTO (El trabajo sucio) ---
+        let dataProcesada = [];
+        let statsGenerales = { total: 0, aTiempo: 0, conRetraso: 0, pendientes: 0 };
+        let statsPorDisenador = {};
+        let statsPorSolicitante = {};
+
+        function procesarDatos() {
+            dataProcesada = rawData.map(item => {
+                let estado = "Pendiente / Sin dato";
+                let diff = 0;
+
+                if (item.fecha_solicitada && item.fecha_entrega) {
+                    const fSolicitada = new Date(item.fecha_solicitada);
+                    const fEntrega = new Date(item.fecha_entrega);
+                    // Cálculo de diferencia en días (matemática pura)
+                    diff = (fEntrega - fSolicitada) / (1000 * 60 * 60 * 24);
+                    
+                    if (diff <= 0) {
+                        estado = "A Tiempo";
+                    } else {
+                        estado = "Con Retraso";
+                    }
+                }
+
+                // Agregamos métricas globales
+                statsGenerales.total++;
+                if(estado === "A Tiempo") statsGenerales.aTiempo++;
+                if(estado === "Con Retraso") statsGenerales.conRetraso++;
+                if(estado === "Pendiente / Sin dato") statsGenerales.pendientes++;
+
+                // Agrupamos por Diseñador
+                if (!statsPorDisenador[item.diseñador]) {
+                    statsPorDisenador[item.diseñador] = { total: 0, aTiempo: 0, conRetraso: 0, pendientes: 0 };
+                }
+                statsPorDisenador[item.diseñador].total++;
+                if(estado === "A Tiempo") statsPorDisenador[item.diseñador].aTiempo++;
+                if(estado === "Con Retraso") statsPorDisenador[item.diseñador].conRetraso++;
+                if(estado === "Pendiente / Sin dato") statsPorDisenador[item.diseñador].pendientes++;
+
+                // Agrupamos por Solicitante
+                if (!statsPorSolicitante[item.solicitante]) {
+                    statsPorSolicitante[item.solicitante] = { total: 0, aTiempo: 0, conRetraso: 0, pendientes: 0 };
+                }
+                statsPorSolicitante[item.solicitante].total++;
+                if(estado === "A Tiempo") statsPorSolicitante[item.solicitante].aTiempo++;
+                if(estado === "Con Retraso") statsPorSolicitante[item.solicitante].conRetraso++;
+                if(estado === "Pendiente / Sin dato") statsPorSolicitante[item.solicitante].pendientes++;
+
+                return { ...item, estado, diferencia_dias: diff };
+            });
+        }
+
+        // --- 3. RENDERIZADO DE LA INTERFAZ (Pintando en pantalla) ---
+        
+        function renderBadge(estado) {
+            if (estado === 'A Tiempo') return `<span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold tracking-wide"><i class="fa-solid fa-check"></i> A Tiempo</span>`;
+            if (estado === 'Con Retraso') return `<span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold tracking-wide"><i class="fa-solid fa-triangle-exclamation"></i> Con Retraso</span>`;
+            return `<span class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-xs font-bold tracking-wide"><i class="fa-regular fa-clock"></i> Pendiente</span>`;
+        }
+
+        function formatearFecha(fecha) {
+            if(!fecha) return '<span class="text-slate-300 italic">Sin dato</span>';
+            return fecha;
+        }
+
+        function renderDashboard() {
+            // Pintamos los KPIs
+            document.getElementById('kpi-container').innerHTML = `
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="p-4 bg-blue-50 rounded-xl text-blue-600"><i class="fa-solid fa-chart-simple text-2xl"></i></div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Total Solicitudes</p>
+                        <p class="text-3xl font-black text-slate-800">${statsGenerales.total}</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="p-4 bg-emerald-50 rounded-xl text-emerald-600"><i class="fa-solid fa-check-double text-2xl"></i></div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">A Tiempo</p>
+                        <p class="text-3xl font-black text-slate-800">${statsGenerales.aTiempo}</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="p-4 bg-red-50 rounded-xl text-red-600"><i class="fa-solid fa-bomb text-2xl"></i></div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Con Retraso</p>
+                        <p class="text-3xl font-black text-slate-800">${statsGenerales.conRetraso}</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="p-4 bg-amber-50 rounded-xl text-amber-600"><i class="fa-solid fa-hourglass-half text-2xl"></i></div>
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Pendientes</p>
+                        <p class="text-3xl font-black text-slate-800">${statsGenerales.pendientes}</p>
+                    </div>
+                </div>
+            `;
+
+            // Pintamos el texto sarcástico con datos reales
+            document.getElementById('dashboard-insight').innerHTML = `
+                Parce, si analizamos estos datos en frío, vemos que de un total de <strong class="text-indigo-600">${statsGenerales.total}</strong> piezas en esta muestra, 
+                tenemos <strong class="text-red-500">${statsGenerales.conRetraso}</strong> retrasos dolorosos y un montón de <strong class="text-amber-500">${statsGenerales.pendientes}</strong> solicitudes en el limbo 
+                (muchas porque simplemente se les olvidó anotar la fecha final en el Excel). 
+                A este paso, o actualizamos el Excel juiciosos cuando se entrega el diseño, o las métricas siempre nos van a hacer quedar como si estuviéramos atrasados. ¡Hay que apretar tuercas!
+            `;
+        }
+
+        function renderSearch(filtro = '') {
+            const tbody = document.getElementById('search-results');
+            tbody.innerHTML = '';
+            
+            const term = filtro.toLowerCase();
+            const resultados = dataProcesada.filter(d => 
+                d.solicitud.toLowerCase().includes(term) || 
+                d.solicitante.toLowerCase().includes(term) ||
+                d.diseñador.toLowerCase().includes(term)
+            );
+
+            if (resultados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-medium">No encontré nada con "${filtro}". Revisa si está bien escrito o si alguien lo borró del Excel.</td></tr>`;
+                return;
+            }
+
+            resultados.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 font-medium text-slate-700 max-w-md">${row.solicitud}</td>
+                    <td class="p-4 text-slate-500 font-semibold">${row.solicitante}</td>
+                    <td class="p-4 text-indigo-600 font-semibold">${row.diseñador}</td>
+                    <td class="p-4 text-center text-xs text-slate-500">
+                        Req: ${formatearFecha(row.fecha_solicitada)}<br>
+                        Ent: ${formatearFecha(row.fecha_entrega)}
+                    </td>
+                    <td class="p-4 text-center">${renderBadge(row.estado)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderDesigners() {
+            const container = document.getElementById('designers-container');
+            container.innerHTML = '';
+
+            // Convertir objeto a array y ordenar por mayor cantidad de trabajo
+            const sortedDesigners = Object.entries(statsPorDisenador).sort((a, b) => b[1].total - a[1].total);
+
+            sortedDesigners.forEach(([nombre, stats]) => {
+                // Cálculo de anchos para la barra de progreso
+                const pTiempo = (stats.aTiempo / stats.total) * 100;
+                const pRetraso = (stats.conRetraso / stats.total) * 100;
+                const pPendiente = (stats.pendientes / stats.total) * 100;
+
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 w-full md:w-1/3">
+                            <div class="w-12 h-12 min-w-[3rem] rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xl shadow-inner">
+                                ${nombre.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg">${nombre}</h4>
+                                <p class="text-xs text-slate-500 font-medium">${stats.total} solicitudes asignadas</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex w-full md:w-2/3 gap-1 h-8 rounded-full overflow-hidden bg-slate-100">
+                            ${stats.aTiempo > 0 ? `<div style="width: ${pTiempo}%" class="bg-emerald-500 flex items-center justify-center text-[10px] font-bold text-white shadow-inner" title="${stats.aTiempo} A Tiempo">${stats.aTiempo}</div>` : ''}
+                            ${stats.conRetraso > 0 ? `<div style="width: ${pRetraso}%" class="bg-red-500 flex items-center justify-center text-[10px] font-bold text-white shadow-inner" title="${stats.conRetraso} Con Retraso">${stats.conRetraso}</div>` : ''}
+                            ${stats.pendientes > 0 ? `<div style="width: ${pPendiente}%" class="bg-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-600 shadow-inner" title="${stats.pendientes} Pendientes">${stats.pendientes}</div>` : ''}
+                        </div>
+                        
+                        <div class="flex gap-4 text-xs font-semibold text-slate-500 min-w-[200px] justify-end">
+                            <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-500"></div> A Tiempo</div>
+                            <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div> Retraso</div>
+                            <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-slate-300"></div> Pend.</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderRequesters() {
+            const tbody = document.getElementById('requesters-container');
+            tbody.innerHTML = '';
+
+            // Ordenar clientes por los que más piden
+            const sortedRequesters = Object.entries(statsPorSolicitante).sort((a, b) => b[1].total - a[1].total);
+
+            sortedRequesters.forEach(([nombre, stats], index) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-bold text-slate-700 flex items-center gap-3">
+                            <span class="text-slate-300 font-black text-lg w-6">${index + 1}.</span>
+                            ${nombre}
+                        </td>
+                        <td class="p-4 text-center font-black text-indigo-600 text-lg">${stats.total}</td>
+                        <td class="p-4 text-center font-bold text-emerald-600">${stats.aTiempo > 0 ? stats.aTiempo : '-'}</td>
+                        <td class="p-4 text-center font-bold text-red-600">${stats.conRetraso > 0 ? stats.conRetraso : '-'}</td>
+                        <td class="p-4 text-center font-bold text-slate-400">${stats.pendientes > 0 ? stats.pendientes : '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- 4. LÓGICA DE NAVEGACIÓN (Las pestañas) ---
+        function switchTab(tabId) {
+            // Ocultar todas las vistas
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Mostrar la seleccionada
+            document.getElementById(tabId).classList.add('active');
+
+            // Actualizar el estilo de los botones (ponerlos grisáceos)
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 text-indigo-200 hover:text-white hover:bg-indigo-700";
+            });
+            
+            // Iluminar el botón seleccionado
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.className = "tab-btn active-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 bg-white text-indigo-900 shadow-sm";
+        }
+
+        // --- 5. INICIALIZAR TODO CUANDO CARGA LA PÁGINA ---
+        window.onload = () => {
+            procesarDatos();
+            renderDashboard();
+            renderSearch();
+            renderDesigners();
+            renderRequesters();
+
+            // Agregar el evento al buscador para que filtre en tiempo real al teclear
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                renderSearch(e.target.value);
+            });
+        };
+    </script>
+</body>
+</html>
